@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Login screen එක app එකට add කරලා තියෙන නිසා, දැන් sign-in වුනු
+// teacher කෙනෙකුට විතරයි database එක read/write කරන්න පුළුවන්.
+// (App එකේ "Create Account" screen එකෙන් ඕනම කෙනෙකුට account එකක් හදාගන්න
+// පුළුවන් නිසා, ඔයාගේ school එකේ පමණක් access දෙන්න ඕන නම්, Firebase Console >
+// Authentication > Settings වලින් "Sign-up" restrict කරන්න පුළුවන්.)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

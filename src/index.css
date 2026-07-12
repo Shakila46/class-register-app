@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: #F7F4EC;
+  background-image:
+    linear-gradient(90deg, rgba(31,61,46,0.035) 1px, transparent 1px);
+  background-size: 100% 42px;
+  font-family: 'Inter', sans-serif;
+  color: #1F2A22;
+}
+
+.font-display {
+  font-family: 'Fraunces', serif;
+}
+
+.font-mono-tag {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Ledger tab navigation */
+.ledger-tab {
+  position: relative;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.ledger-tab.active {
+  transform: translateX(4px);
+}
+
+/* Stamp-style badge */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  border-width: 2px;
+  border-style: solid;
+  transform: rotate(-2deg);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9C2A8;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
