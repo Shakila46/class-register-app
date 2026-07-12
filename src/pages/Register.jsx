@@ -2,14 +2,19 @@ import { useState, useMemo } from 'react'
 import { PageHeader, Card, YearPill } from '../components/UI.jsx'
 import { addStudent, updateStudent, deleteStudent } from '../utils/firestoreApi'
 import { useLanguage } from '../context/LanguageContext.jsx'
+import { useInstitute } from '../context/InstituteContext.jsx'
 
 export default function Register({ students }) {
   const { t } = useLanguage()
+  const { institutes, selectedInstitute, addInstituteAndSelect } = useInstitute()
   const [name, setName] = useState('')
   const [admissionNo, setAdmissionNo] = useState('')
   const [year, setYear] = useState('')
   const [phone, setPhone] = useState('')
   const [school, setSchool] = useState('')
+  const [institute, setInstitute] = useState(selectedInstitute || '')
+  const [addingInstitute, setAddingInstitute] = useState(false)
+  const [newInstituteName, setNewInstituteName] = useState('')
   const [error, setError] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -30,7 +35,19 @@ export default function Register({ students }) {
     setYear('')
     setPhone('')
     setSchool('')
+    setInstitute(selectedInstitute || '')
     setEditingId(null)
+    setAddingInstitute(false)
+    setNewInstituteName('')
+  }
+
+  async function handleAddInstitute(e) {
+    e.preventDefault()
+    if (!newInstituteName.trim()) return
+    await addInstituteAndSelect(newInstituteName)
+    setInstitute(newInstituteName.trim())
+    setNewInstituteName('')
+    setAddingInstitute(false)
   }
 
   async function handleSubmit(e) {
@@ -43,9 +60,9 @@ export default function Register({ students }) {
     setSaving(true)
     try {
       if (editingId) {
-        await updateStudent(editingId, { name, admissionNo, year, phone, school })
+        await updateStudent(editingId, { name, admissionNo, year, phone, school, institute })
       } else {
-        await addStudent({ name, admissionNo, year, phone, school })
+        await addStudent({ name, admissionNo, year, phone, school, institute })
       }
       resetForm()
     } catch (err) {
@@ -62,6 +79,7 @@ export default function Register({ students }) {
     setYear(s.year)
     setPhone(s.phone || '')
     setSchool(s.school || '')
+    setInstitute(s.institute || '')
   }
 
   async function handleDelete(id) {
@@ -80,6 +98,59 @@ export default function Register({ students }) {
             {editingId ? t('reg_editTitle') : t('reg_newTitle')}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-board-700 mb-1">
+                {t('reg_institute')}
+              </label>
+              {!addingInstitute ? (
+                <select
+                  value={institute}
+                  onChange={(e) => {
+                    if (e.target.value === '__add__') {
+                      setAddingInstitute(true)
+                    } else {
+                      setInstitute(e.target.value)
+                    }
+                  }}
+                  className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                >
+                  <option value="">{t('reg_selectInstitute')}</option>
+                  {institutes.map((inst) => (
+                    <option key={inst.id} value={inst.name}>
+                      {inst.name}
+                    </option>
+                  ))}
+                  <option value="__add__">+ {t('institute_addNew')}</option>
+                </select>
+              ) : (
+                <div className="flex gap-1.5">
+                  <input
+                    autoFocus
+                    value={newInstituteName}
+                    onChange={(e) => setNewInstituteName(e.target.value)}
+                    placeholder={t('institute_namePlaceholder')}
+                    className="flex-1 min-w-0 border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddInstitute}
+                    className="text-sm bg-board-800 text-white font-medium px-3 rounded-card hover:bg-board-700 transition"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddingInstitute(false)
+                      setNewInstituteName('')
+                    }}
+                    className="text-sm text-board-700 px-2 rounded-card border border-chalk-line hover:bg-chalk-bg"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
             <div>
               <label className="block text-xs font-medium text-board-700 mb-1">
                 {t('reg_fullName')}
@@ -119,6 +190,8 @@ export default function Register({ students }) {
               </label>
               <input
                 type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -181,6 +254,9 @@ export default function Register({ students }) {
                           <p className="text-xs text-board-700/50 mt-0.5">
                             {t('reg_admissionCol')}: {s.admissionNo || '—'}
                           </p>
+                          {s.institute && (
+                            <p className="text-[11px] text-gold-600 mt-0.5">🏛 {s.institute}</p>
+                          )}
                         </div>
                         <div className="flex-shrink-0 flex gap-3">
                           <button
@@ -216,10 +292,11 @@ export default function Register({ students }) {
 
                 {/* Desktop / tablet: table layout */}
                 <div className="hidden sm:block overflow-x-auto">
-                  <table className="w-full text-sm min-w-[680px]">
+                  <table className="w-full text-sm min-w-[760px]">
                     <thead>
                       <tr className="text-left text-xs text-board-700/60 border-b border-chalk-line">
                         <th className="px-4 py-2 font-medium">{t('dash_name')}</th>
+                        <th className="px-4 py-2 font-medium">{t('reg_institute')}</th>
                         <th className="px-4 py-2 font-medium">{t('reg_admissionCol')}</th>
                         <th className="px-4 py-2 font-medium">{t('reg_phone')}</th>
                         <th className="px-4 py-2 font-medium">{t('reg_school')}</th>
@@ -230,6 +307,7 @@ export default function Register({ students }) {
                       {list.map((s) => (
                         <tr key={s.id} className="border-b border-chalk-line last:border-0">
                           <td className="px-4 py-2.5">{s.name}</td>
+                          <td className="px-4 py-2.5 text-board-700/70">{s.institute || '—'}</td>
                           <td className="px-4 py-2.5 text-board-700/70">{s.admissionNo || '—'}</td>
                           <td className="px-4 py-2.5 text-board-700/70 whitespace-nowrap">
                             {s.phone ? (

@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { PageHeader, Card, ProbabilityBadge, GradeBadge, YearPill } from '../components/UI.jsx'
 import { addMark, deleteMark } from '../utils/firestoreApi'
 import { averageOf, calcPassProbability, probabilityBand, attendanceRate, gradeFor, gradeTone, PASS_MARK } from '../utils/predict'
@@ -34,6 +36,7 @@ export default function Marks({ students, attendance, marks }) {
   const [maxMarks, setMaxMarks] = useState('100')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [exportYear, setExportYear] = useState('')
 
   const examTypeOptions = [
     { value: 'Term Test', label: t('marks_examType_term') },
@@ -69,6 +72,60 @@ export default function Marks({ students, attendance, marks }) {
     }
     return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
   }, [students])
+
+  const availableYears = useMemo(() => {
+    const set = new Set(students.map((s) => s.year || 'Unassigned'))
+    return Array.from(set).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+  }, [students])
+
+  const exportGrouped = useMemo(() => {
+    if (!exportYear) return grouped
+    return grouped.filter(([yearKey]) => yearKey === exportYear)
+  }, [grouped, exportYear])
+
+  function exportPDF() {
+    const rows = []
+    for (const [yearKey, list] of exportGrouped) {
+      for (const s of list) {
+        const sMarks = marksByStudent[s.id] || []
+        const avg = averageOf(sMarks)
+        const rate = attendanceRate(attendanceByStudent[s.id] || [])
+        const prob = calcPassProbability(avg, rate)
+        const grade = gradeFor(avg)
+        rows.push([
+          s.name,
+          yearKey,
+          mySubject || '',
+          avg === null ? '' : `${avg.toFixed(1)}%`,
+          grade || '',
+          rate === null ? '' : `${rate.toFixed(0)}%`,
+          prob === null ? '' : `${prob}%`,
+        ])
+      }
+    }
+    if (rows.length === 0) return
+
+    const doc = new jsPDF({ orientation: 'landscape' })
+    doc.setFontSize(14)
+    doc.text(
+      `Marks Report${exportYear ? ' - ' + exportYear : ''}${mySubject ? ' (' + mySubject + ')' : ''}`,
+      14,
+      15
+    )
+    doc.setFontSize(9)
+    doc.setTextColor(100)
+    doc.text(`Generated ${new Date().toISOString().slice(0, 10)}`, 14, 21)
+
+    autoTable(doc, {
+      head: [['Name', 'Year', 'Subject', 'Average', 'Grade', 'Attendance', 'Pass Probability']],
+      body: rows,
+      startY: 26,
+      styles: { fontSize: 8, cellPadding: 2.5 },
+      headStyles: { fillColor: [31, 61, 46] },
+    })
+
+    doc.save(`marks-report-${exportYear || 'all'}-${new Date().toISOString().slice(0, 10)}.pdf`)
+  }
 
   function confirmSubject(value) {
     setMySubject(value)
@@ -237,6 +294,30 @@ export default function Marks({ students, attendance, marks }) {
               {t('marks_empty')}
             </Card>
           )}
+
+          {grouped.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={exportYear}
+                onChange={(e) => setExportYear(e.target.value)}
+                className="border border-chalk-line rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+              >
+                <option value="">{t('att_allYears')}</option>
+                {availableYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={exportPDF}
+                className="font-mono-tag text-xs bg-board-800 text-white rounded-card px-3 py-1.5 hover:bg-board-700 transition"
+              >
+                ⬇ {t('marks_exportPdf')}
+              </button>
+            </div>
+          )}
+
           {grouped.map(([yearKey, list]) => (
             <div key={yearKey}>
               <div className="flex items-center gap-2 mb-2">

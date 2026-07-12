@@ -2,6 +2,12 @@ export const translations = {
   en: {
     appTitle: 'Attendance & Marks Tracker',
     appEyebrow: 'Class Register',
+    institute_label: 'Institute',
+    institute_all: 'All Institutes',
+    institute_addNew: 'Add New Institute',
+    institute_namePlaceholder: 'e.g. Sipsewana Institute',
+    reg_institute: 'Institute',
+    reg_selectInstitute: '-- Select institute --',
     nav_dashboard: 'Dashboard',
     nav_register: 'Student Registration',
     nav_attendance: 'Attendance',
@@ -101,6 +107,9 @@ export const translations = {
     att_noHistory: 'No attendance has been recorded for this year yet.',
     att_overallCol: 'Overall %',
     att_exportSheet: 'Download as Sheet (CSV)',
+    att_fromDate: 'From',
+    att_toDate: 'To',
+    att_exportPdf: 'Download as PDF',
 
     // Marks
     marks_eyebrow: 'Step 04',
@@ -131,6 +140,7 @@ export const translations = {
     marks_typeCol: 'Type',
     marks_marksCol: 'Marks',
     marks_remove: 'Remove',
+    marks_exportPdf: 'Download Report as PDF',
     marks_examType_term: 'Term Test',
     marks_examType_monthly: 'Monthly Test',
     marks_examType_model: 'Model Paper',
@@ -147,6 +157,12 @@ export const translations = {
   si: {
     appTitle: 'Attendance & Marks Tracker',
     appEyebrow: 'Class Register',
+    institute_label: 'Institute',
+    institute_all: 'සියලුම Institutes',
+    institute_addNew: 'අලුත් Institute එකක් Add කරන්න',
+    institute_namePlaceholder: 'e.g. Sipsewana Institute',
+    reg_institute: 'Institute',
+    reg_selectInstitute: '-- Institute එක තෝරන්න --',
     nav_dashboard: 'Dashboard',
     nav_register: 'ළමයි ලියාපදිංචිය',
     nav_attendance: 'Attendance',
@@ -246,6 +262,9 @@ export const translations = {
     att_noHistory: 'මේ වසරට තවම පැමිණීමක් record කරලා නෑ.',
     att_overallCol: 'Overall %',
     att_exportSheet: 'Sheet එකක් විදිහට Download කරන්න (CSV)',
+    att_fromDate: 'ඉඳන්',
+    att_toDate: 'දක්වා',
+    att_exportPdf: 'PDF විදිහට Download කරන්න',
 
     // Marks
     marks_eyebrow: 'Step 04',
@@ -276,6 +295,7 @@ export const translations = {
     marks_typeCol: 'Type',
     marks_marksCol: 'Marks',
     marks_remove: 'Remove',
+    marks_exportPdf: 'PDF විදිහට Report එක Download කරන්න',
     marks_examType_term: 'Term Test',
     marks_examType_monthly: 'Monthly Test',
     marks_examType_model: 'Model Paper',

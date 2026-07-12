@@ -20,13 +20,14 @@ export function subscribeStudents(callback) {
   })
 }
 
-export function addStudent({ name, admissionNo, year, phone, school }) {
+export function addStudent({ name, admissionNo, year, phone, school, institute }) {
   return addDoc(collection(db, 'students'), {
     name,
     admissionNo,
     year,
     phone: phone || '',
     school: school || '',
+    institute: institute || '',
     createdAt: serverTimestamp(),
   })
 }

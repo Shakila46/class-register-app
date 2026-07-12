@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { PageHeader, Card, AttendanceStamp, YearPill } from '../components/UI.jsx'
 import { markAttendance } from '../utils/firestoreApi'
 import { attendanceRate } from '../utils/predict'
@@ -19,6 +21,8 @@ export default function Attendance({ students, attendance }) {
   const [date, setDate] = useState(todayStr())
   const [markYear, setMarkYear] = useState('')
   const [historyYear, setHistoryYear] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
 
   const attendanceByStudent = useMemo(() => {
     const map = {}
@@ -74,23 +78,42 @@ export default function Attendance({ students, attendance }) {
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [students, historyYear])
 
+  // Dates within the selected year, narrowed to the from/to range if set.
   const historyDates = useMemo(() => {
     if (!historyYear) return []
     const ids = new Set(historyStudents.map((s) => s.id))
     const set = new Set()
     for (const a of attendance) {
-      if (ids.has(a.studentId)) set.add(a.date)
+      if (!ids.has(a.studentId)) continue
+      if (fromDate && a.date < fromDate) continue
+      if (toDate && a.date > toDate) continue
+      set.add(a.date)
     }
     return Array.from(set).sort() // ISO date strings sort correctly ascending
-  }, [attendance, historyStudents, historyYear])
+  }, [attendance, historyStudents, historyYear, fromDate, toDate])
+
+  // Attendance % computed only across the dates currently in view (respects the date-range filter).
+  function rangeAttendanceRate(studentId) {
+    if (historyDates.length === 0) return null
+    let present = 0
+    let total = 0
+    for (const d of historyDates) {
+      const val = attendanceMatrix[studentId]?.[d]
+      if (val !== undefined) {
+        total++
+        if (val) present++
+      }
+    }
+    if (total === 0) return null
+    return (present / total) * 100
+  }
 
   async function toggle(studentId, present) {
     await markAttendance({ studentId, date, present })
   }
 
-  function exportCSV() {
-    if (!historyYear || historyDates.length === 0) return
-    const headers = [
+  function buildReportRows() {
+    const head = [
       t('reg_fullName'),
       t('reg_phone'),
       t('reg_school'),
@@ -98,14 +121,20 @@ export default function Attendance({ students, attendance }) {
       t('att_overallCol'),
     ]
     const rows = historyStudents.map((s) => {
-      const rate = attendanceRate(attendanceByStudent[s.id] || [])
+      const rate = rangeAttendanceRate(s.id)
       const cells = historyDates.map((d) => {
         const val = attendanceMatrix[s.id]?.[d]
         return val === true ? 'P' : val === false ? 'A' : ''
       })
       return [s.name, s.phone || '', s.school || '', ...cells, rate === null ? '' : `${rate.toFixed(0)}%`]
     })
-    const csvContent = [headers, ...rows]
+    return { head, rows }
+  }
+
+  function exportCSV() {
+    if (!historyYear || historyDates.length === 0) return
+    const { head, rows } = buildReportRows()
+    const csvContent = [head, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
       .join('\n')
     // \uFEFF BOM so Excel/Sheets correctly render UTF-8 (Sinhala) characters
@@ -118,6 +147,30 @@ export default function Attendance({ students, attendance }) {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  function exportPDF() {
+    if (!historyYear || historyDates.length === 0) return
+    const { head, rows } = buildReportRows()
+    const doc = new jsPDF({ orientation: 'landscape' })
+
+    doc.setFontSize(14)
+    doc.text(`Attendance Report - ${historyYear}`, 14, 15)
+    doc.setFontSize(9)
+    doc.setTextColor(100)
+    const rangeLabel =
+      fromDate || toDate ? `${fromDate || '...'} to ${toDate || '...'}` : 'All recorded dates'
+    doc.text(rangeLabel, 14, 21)
+
+    autoTable(doc, {
+      head: [head],
+      body: rows,
+      startY: 26,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [31, 61, 46] },
+    })
+
+    doc.save(`attendance-${historyYear}-${todayStr()}.pdf`)
   }
 
   return (
@@ -272,31 +325,78 @@ export default function Attendance({ students, attendance }) {
           <h2 className="font-display text-2xl md:text-3xl text-board-900">{t('att_historyTitle')}</h2>
           <p className="text-sm text-board-700/70 mt-1.5 mb-6">{t('att_historySubtitle')}</p>
 
-          <div className="mb-6 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
-            <div className="flex items-center gap-3">
-              <label className="text-xs font-medium text-board-700 flex-shrink-0">{t('att_selectYear')}</label>
-              <select
-                value={historyYear}
-                onChange={(e) => setHistoryYear(e.target.value)}
-                className="flex-1 sm:flex-none border border-chalk-line rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
-              >
-                <option value="">{t('att_selectYear')}</option>
-                {availableYears.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
+          <Card className="p-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="col-span-2 sm:col-span-1">
+                <label className="block text-[11px] font-medium text-board-700 mb-1">
+                  {t('att_selectYear')}
+                </label>
+                <select
+                  value={historyYear}
+                  onChange={(e) => setHistoryYear(e.target.value)}
+                  className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                >
+                  <option value="">{t('att_selectYear')}</option>
+                  {availableYears.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-board-700 mb-1">
+                  {t('att_fromDate')}
+                </label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full border border-chalk-line rounded-card px-2 sm:px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-board-700 mb-1">
+                  {t('att_toDate')}
+                </label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full border border-chalk-line rounded-card px-2 sm:px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                />
+              </div>
             </div>
-            {historyYear && historyDates.length > 0 && (
+
+            {(fromDate || toDate) && (
+              <button
+                onClick={() => {
+                  setFromDate('')
+                  setToDate('')
+                }}
+                className="font-mono-tag text-xs text-board-600 border border-chalk-line rounded-card px-3 py-1.5 mt-3 hover:bg-chalk-bg transition"
+              >
+                ✕ {t('dash_clearFilters')}
+              </button>
+            )}
+          </Card>
+
+          {historyYear && historyDates.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                onClick={exportPDF}
+                className="font-mono-tag text-xs bg-board-800 text-white rounded-card px-3 py-2 sm:py-1.5 hover:bg-board-700 transition"
+              >
+                ⬇ {t('att_exportPdf')}
+              </button>
               <button
                 onClick={exportCSV}
                 className="font-mono-tag text-xs border border-board-600 text-board-700 rounded-card px-3 py-2 sm:py-1.5 hover:bg-board-800 hover:text-white hover:border-board-800 transition"
               >
                 ⬇ {t('att_exportSheet')}
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {!historyYear && (
             <Card className="p-8 text-center text-sm text-board-700/60">
@@ -329,7 +429,7 @@ export default function Attendance({ students, attendance }) {
                   </thead>
                   <tbody>
                     {historyStudents.map((s) => {
-                      const rate = attendanceRate(attendanceByStudent[s.id] || [])
+                      const rate = rangeAttendanceRate(s.id)
                       return (
                         <tr key={s.id} className="border-b border-chalk-line last:border-0">
                           <td className="px-4 py-2.5 whitespace-nowrap sticky left-0 bg-chalk-card">
