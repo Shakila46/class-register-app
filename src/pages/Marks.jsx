@@ -179,13 +179,13 @@ export default function Marks({ students, attendance, marks }) {
       <div className="px-4 sm:px-6 md:px-10 py-6">
         {/* One-time subject setting — teacher usually teaches a single subject */}
         <Card className="p-4 mb-6 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-medium text-board-700 flex-shrink-0">
+          <span className="text-xs font-medium text-ink-700 dark:text-chalk-bg/90 flex-shrink-0">
             {t('marks_yourSubject')}
           </span>
           {editingSubject ? (
             <div className="flex flex-wrap items-center gap-2">
               <select
-                className="border border-chalk-line rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                 value={mySubject}
                 onChange={(e) => setMySubject(e.target.value)}
               >
@@ -213,7 +213,7 @@ export default function Marks({ students, attendance, marks }) {
               <button
                 type="button"
                 onClick={() => setEditingSubject(true)}
-                className="text-xs text-board-600 hover:underline"
+                className="text-xs text-ink-600 dark:text-gold-500 hover:underline"
               >
                 {t('marks_changeSubject')}
               </button>
@@ -224,12 +224,12 @@ export default function Marks({ students, attendance, marks }) {
 
       <div className="px-4 sm:px-6 md:px-10 pb-8 grid md:grid-cols-[360px_1fr] gap-6 md:gap-8">
         <Card className="p-6 h-fit">
-          <h3 className="font-display text-lg text-board-900 mb-4">{t('marks_addTitle')}</h3>
+          <h3 className="font-display text-lg text-ink-900 dark:text-white mb-4">{t('marks_addTitle')}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-board-700 mb-1">{t('marks_student')}</label>
+              <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">{t('marks_student')}</label>
               <select
-                className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
               >
@@ -242,9 +242,9 @@ export default function Marks({ students, attendance, marks }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-board-700 mb-1">{t('marks_examType')}</label>
+              <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">{t('marks_examType')}</label>
               <select
-                className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                 value={examType}
                 onChange={(e) => setExamType(e.target.value)}
               >
@@ -257,20 +257,20 @@ export default function Marks({ students, attendance, marks }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-board-700 mb-1">{t('marks_marks')}</label>
+                <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">{t('marks_marks')}</label>
                 <input
                   type="number"
-                  className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                   value={studentMarks}
                   onChange={(e) => setStudentMarks(e.target.value)}
                   placeholder="e.g. 68"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-board-700 mb-1">{t('marks_outOf')}</label>
+                <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">{t('marks_outOf')}</label>
                 <input
                   type="number"
-                  className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                   value={maxMarks}
                   onChange={(e) => setMaxMarks(e.target.value)}
                   placeholder="100"
@@ -290,7 +290,7 @@ export default function Marks({ students, attendance, marks }) {
 
         <div className="space-y-6 min-w-0">
           {grouped.length === 0 && (
-            <Card className="p-8 text-center text-sm text-board-700/60">
+            <Card className="p-8 text-center text-sm text-ink-700/60 dark:text-chalk-bg/60">
               {t('marks_empty')}
             </Card>
           )}
@@ -300,7 +300,7 @@ export default function Marks({ students, attendance, marks }) {
               <select
                 value={exportYear}
                 onChange={(e) => setExportYear(e.target.value)}
-                className="border border-chalk-line rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
               >
                 <option value="">{t('att_allYears')}</option>
                 {availableYears.map((y) => (
@@ -335,8 +335,8 @@ export default function Marks({ students, attendance, marks }) {
                     <Card key={s.id} className="p-4">
                       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                         <div>
-                          <p className="font-medium text-board-900">{s.name}</p>
-                          <p className="text-xs text-board-700/50">
+                          <p className="font-medium text-ink-900 dark:text-white">{s.name}</p>
+                          <p className="text-xs text-ink-700/50 dark:text-chalk-bg/50">
                             {t('marks_average')}: {avg === null ? '—' : `${avg.toFixed(1)}%`} · {t('marks_attendance')}:{' '}
                             {rate === null ? '—' : `${rate.toFixed(0)}%`}
                           </p>
@@ -350,7 +350,7 @@ export default function Marks({ students, attendance, marks }) {
                         <div className="overflow-x-auto -mx-1">
                           <table className="w-full text-xs mt-2 min-w-[360px]">
                             <thead>
-                              <tr className="text-left text-board-700/50 border-t border-chalk-line">
+                              <tr className="text-left text-ink-700/50 dark:text-chalk-bg/50 border-t border-chalk-line dark:border-board-700">
                                 <th className="py-1.5 px-1 font-medium">{t('marks_subjectCol')}</th>
                                 <th className="py-1.5 px-1 font-medium">{t('marks_typeCol')}</th>
                                 <th className="py-1.5 px-1 font-medium">{t('marks_marksCol')}</th>
@@ -359,9 +359,9 @@ export default function Marks({ students, attendance, marks }) {
                             </thead>
                             <tbody>
                               {sMarks.map((m) => (
-                                <tr key={m.id} className="border-t border-chalk-line/60">
+                                <tr key={m.id} className="border-t border-chalk-line dark:border-board-700/60">
                                   <td className="py-1.5 px-1">{m.subject}</td>
-                                  <td className="py-1.5 px-1 text-board-700/60">{m.examType}</td>
+                                  <td className="py-1.5 px-1 text-ink-700/60 dark:text-chalk-bg/60">{m.examType}</td>
                                   <td className="py-1.5 px-1">{m.marks.toFixed(1)}%</td>
                                   <td className="py-1.5 px-1 text-right">
                                     <button

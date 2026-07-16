@@ -1,15 +1,41 @@
 rules_version = '2';
 
-// Login screen එක app එකට add කරලා තියෙන නිසා, දැන් sign-in වුනු
-// teacher කෙනෙකුට විතරයි database එක read/write කරන්න පුළුවන්.
-// (App එකේ "Create Account" screen එකෙන් ඕනම කෙනෙකුට account එකක් හදාගන්න
-// පුළුවන් නිසා, ඔයාගේ school එකේ පමණක් access දෙන්න ඕන නම්, Firebase Console >
-// Authentication > Settings වලින් "Sign-up" restrict කරන්න පුළුවන්.)
-
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Check if the current user is an Admin
+    function isAdmin() {
+      return (request.auth != null && request.auth.token.email == 'shakilapraween46@gmail.com') ||
+             (request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Check if the current user is approved
+    function isApproved() {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved';
+    }
+    
+    match /users/{userId} {
+      // Users can read their own profile. Admins can read all.
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Users can create their initial pending profile
+      allow create: if request.auth != null && request.auth.uid == userId 
+                    && request.resource.data.role == 'teacher' 
+                    && request.resource.data.status == 'pending';
+      // Only admins can update user profiles (approve/revoke/change role)
+      allow update, delete: if isAdmin();
+    }
+    
+    // Core application data (students, attendance, marks, fees, institutes)
+    // Only accessible to Approved users or Admins
+    match /students/{docId} { allow read, write: if isAdmin() || isApproved(); }
+    match /attendance/{docId} { allow read, write: if isAdmin() || isApproved(); }
+    match /marks/{docId} { allow read, write: if isAdmin() || isApproved(); }
+    match /institutes/{docId} { allow read, write: if isAdmin() || isApproved(); }
+    match /fees/{docId} { allow read, write: if isAdmin() || isApproved(); }
+
+    // Fallback block to prevent reading anything else accidentally
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

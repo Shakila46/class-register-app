@@ -12,6 +12,39 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 
+// ---------- Users / RBAC ----------
+export function subscribeUser(uid, callback) {
+  return onSnapshot(doc(db, 'users', uid), (snap) => {
+    if (snap.exists()) {
+      callback({ id: snap.id, ...snap.data() })
+    } else {
+      callback(null)
+    }
+  })
+}
+
+export function subscribeAllUsers(callback) {
+  const q = query(collection(db, 'users'), orderBy('email'))
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  })
+}
+
+export function createUserProfile(uid, email) {
+  // Try to create the user profile; if they already exist, it will fail or we can use setDoc with merge.
+  // Actually, using setDoc so we don't accidentally overwrite if it exists, though rules allow create only.
+  return setDoc(doc(db, 'users', uid), {
+    email,
+    role: 'teacher',
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  })
+}
+
+export function updateUser(uid, data) {
+  return updateDoc(doc(db, 'users', uid), data)
+}
+
 // ---------- Students ----------
 export function subscribeStudents(callback) {
   const q = query(collection(db, 'students'), orderBy('name'))

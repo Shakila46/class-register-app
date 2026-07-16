@@ -112,11 +112,11 @@ export default function Dashboard({ students, attendance, marks, loading }) {
         {/* Filters */}
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-end gap-3 mb-6">
           <div className="min-w-0">
-            <label className="block text-[11px] font-medium text-board-700 mb-1">{t('dash_filterYear')}</label>
+            <label className="block text-[11px] font-medium text-ink-700 dark:text-chalk-bg/70 mb-1">{t('dash_filterYear')}</label>
             <select
               value={filterYear}
               onChange={(e) => setFilterYear(e.target.value)}
-              className="w-full sm:w-auto border border-chalk-line rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+              className="w-full sm:w-auto bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
             >
               <option value="">{t('dash_allYears')}</option>
               {availableYears.map((y) => (
@@ -128,11 +128,11 @@ export default function Dashboard({ students, attendance, marks, loading }) {
           </div>
 
           <div className="min-w-0">
-            <label className="block text-[11px] font-medium text-board-700 mb-1">{t('dash_filterGrade')}</label>
+            <label className="block text-[11px] font-medium text-ink-700 dark:text-chalk-bg/70 mb-1">{t('dash_filterGrade')}</label>
             <select
               value={filterGrade}
               onChange={(e) => setFilterGrade(e.target.value)}
-              className="w-full sm:w-auto border border-chalk-line rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+              className="w-full sm:w-auto bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
             >
               <option value="">{t('dash_allGrades')}</option>
               {GRADES.map((g) => (
@@ -145,11 +145,11 @@ export default function Dashboard({ students, attendance, marks, loading }) {
           </div>
 
           <div className="min-w-0 col-span-2 sm:col-auto">
-            <label className="block text-[11px] font-medium text-board-700 mb-1">{t('dash_filterAttendance')}</label>
+            <label className="block text-[11px] font-medium text-ink-700 dark:text-chalk-bg/70 mb-1">{t('dash_filterAttendance')}</label>
             <select
               value={filterAttendance}
               onChange={(e) => setFilterAttendance(e.target.value)}
-              className="w-full sm:w-auto border border-chalk-line rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+              className="w-full sm:w-auto bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 sm:py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
             >
               <option value="">{t('dash_allAttendance')}</option>
               <option value="good">{t('dash_attendanceGood')}</option>
@@ -161,23 +161,23 @@ export default function Dashboard({ students, attendance, marks, loading }) {
           {hasActiveFilter && (
             <button
               onClick={clearFilters}
-              className="col-span-2 sm:col-auto font-mono-tag text-xs text-board-600 border border-chalk-line rounded-card px-3 py-2 sm:py-1.5 hover:bg-chalk-bg transition"
+              className="col-span-2 sm:col-auto font-mono-tag text-xs text-ink-600 dark:text-chalk-bg/70 border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 sm:py-1.5 hover:bg-chalk-bg dark:hover:bg-board-800 transition"
             >
               ✕ {t('dash_clearFilters')}
             </button>
           )}
         </div>
 
-        {loading && <p className="text-sm text-board-700/50">{t('dash_loading')}</p>}
+        {loading && <p className="text-sm text-ink-700/50 dark:text-chalk-bg/50">{t('dash_loading')}</p>}
 
         {!loading && students.length === 0 && (
-          <Card className="p-8 text-center text-sm text-board-700/60">
+          <Card className="p-8 text-center text-sm text-ink-700/60 dark:text-chalk-bg/60">
             {t('dash_empty')}
           </Card>
         )}
 
         {!loading && students.length > 0 && grouped.length === 0 && (
-          <Card className="p-8 text-center text-sm text-board-700/60">
+          <Card className="p-8 text-center text-sm text-ink-700/60 dark:text-chalk-bg/60">
             {t('dash_noMatch')}
           </Card>
         )}
@@ -187,19 +187,19 @@ export default function Dashboard({ students, attendance, marks, loading }) {
             <div key={yearKey}>
               <div className="flex items-center gap-2 mb-2">
                 <YearPill year={yearKey} />
-                <span className="text-xs text-board-700/50">{list.length} students</span>
+                <span className="text-xs text-ink-700/50 dark:text-chalk-bg/50">{list.length} students</span>
               </div>
               <Card>
                 {/* Mobile: card layout */}
-                <div className="sm:hidden divide-y divide-chalk-line">
+                <div className="sm:hidden divide-y divide-chalk-line dark:divide-board-700">
                   {list.map(({ student: s, rate, avg, prob, band, grade }) => (
                     <div key={s.id} className="p-4">
                       <div className="flex items-center justify-between gap-3 mb-2">
-                        <p className="font-medium text-board-900 truncate">{s.name}</p>
+                        <p className="font-medium text-ink-900 dark:text-white truncate">{s.name}</p>
                         <AttendanceStamp rate={rate} />
                       </div>
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <span className="text-xs text-board-700/70">
+                          <span className="text-xs text-ink-700/70 dark:text-chalk-bg/70">
                             {t('dash_avgMarks')}: {avg === null ? '—' : `${avg.toFixed(1)}%`}
                           </span>
                           <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -215,7 +215,7 @@ export default function Dashboard({ students, attendance, marks, loading }) {
                 <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-sm min-w-[640px]">
                     <thead>
-                      <tr className="text-left text-xs text-board-700/60 border-b border-chalk-line">
+                      <tr className="text-left text-xs text-ink-700/60 dark:text-chalk-bg/60 border-b border-chalk-line dark:border-board-700">
                         <th className="px-4 py-2 font-medium">{t('dash_name')}</th>
                         <th className="px-4 py-2 font-medium">{t('dash_attendance')}</th>
                         <th className="px-4 py-2 font-medium">{t('dash_avgMarks')}</th>
@@ -223,14 +223,14 @@ export default function Dashboard({ students, attendance, marks, loading }) {
                         <th className="px-4 py-2 font-medium">{t('dash_passProbability')}</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="dark:text-chalk-bg">
                       {list.map(({ student: s, rate, avg, prob, band, grade }) => (
-                        <tr key={s.id} className="border-b border-chalk-line last:border-0">
-                          <td className="px-4 py-2.5">{s.name}</td>
+                        <tr key={s.id} className="border-b border-chalk-line dark:border-board-700 last:border-0">
+                          <td className="px-4 py-2.5 font-medium dark:text-white">{s.name}</td>
                           <td className="px-4 py-2.5">
                             <AttendanceStamp rate={rate} />
                           </td>
-                          <td className="px-4 py-2.5 text-board-700/70">
+                          <td className="px-4 py-2.5 text-ink-700/70 dark:text-chalk-bg/70">
                             {avg === null ? '—' : `${avg.toFixed(1)}%`}
                           </td>
                           <td className="px-4 py-2.5">
@@ -254,10 +254,10 @@ export default function Dashboard({ students, attendance, marks, loading }) {
 }
 
 function StatCard({ label, value, tone }) {
-  const toneClass = tone === 'fail' && value > 0 ? 'text-fail-text' : 'text-board-900'
+  const toneClass = tone === 'fail' && value > 0 ? 'text-fail-text dark:text-fail-bg' : 'text-ink-900 dark:text-white'
   return (
     <Card className="p-3 sm:p-4">
-      <p className="text-[10px] sm:text-[11px] text-board-700/50 uppercase tracking-wide font-mono-tag leading-tight">{label}</p>
+      <p className="text-[10px] sm:text-[11px] text-ink-700/50 dark:text-chalk-bg/50 uppercase tracking-wide font-mono-tag leading-tight">{label}</p>
       <p className={`font-display text-2xl sm:text-3xl mt-1 ${toneClass}`}>{value}</p>
     </Card>
   )

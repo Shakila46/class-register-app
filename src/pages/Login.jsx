@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { login, register, resetPassword } from '../utils/authApi'
+import { createUserProfile } from '../utils/firestoreApi'
 import { useLanguage } from '../context/LanguageContext.jsx'
 
 export default function Login() {
@@ -72,7 +73,8 @@ export default function Login() {
     setBusy(true)
     try {
       if (mode === 'signup') {
-        await register(email, password)
+        const cred = await register(email, password)
+        await createUserProfile(cred.user.uid, email)
       } else {
         await login(email, password)
       }
@@ -85,13 +87,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-board-800 flex items-center justify-center px-4 relative">
-      <button
-        onClick={toggleLang}
-        title="Switch language / භාෂාව මාරු කරන්න"
-        className="absolute top-5 right-5 font-mono-tag text-[11px] border border-chalk-bg/25 rounded-card px-2 py-1 text-chalk-bg/70 hover:text-white hover:border-gold-500 transition"
-      >
-        {lang === 'en' ? 'EN' : 'සිං'} ⇄
-      </button>
+      <div className="absolute top-5 right-5 flex items-center gap-2">
+        <button
+          onClick={toggleLang}
+          title="Switch language / භාෂාව මාරු කරන්න"
+          className="font-mono-tag text-[11px] border border-chalk-bg/25 rounded-card px-2 py-1 text-chalk-bg/70 hover:text-white hover:border-gold-500 transition"
+        >
+          {lang === 'en' ? 'EN' : 'සිං'} ⇄
+        </button>
+      </div>
 
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
@@ -103,8 +107,8 @@ export default function Login() {
           </h1>
         </div>
 
-        <div className="bg-chalk-card rounded-card border border-chalk-line p-6 shadow-lg">
-          <div className="flex mb-5 border border-chalk-line rounded-card overflow-hidden text-xs">
+        <div className="bg-chalk-card dark:bg-board-800 rounded-card border border-chalk-line dark:border-board-700 p-6 shadow-lg">
+          <div className="flex mb-5 border border-chalk-line dark:border-board-700 rounded-card overflow-hidden text-xs">
             <button
               type="button"
               onClick={() => {
@@ -113,7 +117,7 @@ export default function Login() {
                 setInfo('')
               }}
               className={`flex-1 py-2 font-medium transition ${
-                mode === 'signin' ? 'bg-board-800 text-white' : 'bg-white text-board-700/60 hover:bg-chalk-bg'
+                mode === 'signin' ? 'bg-board-800 text-white' : 'bg-chalk-card dark:bg-board-800 text-ink-700/60 dark:text-chalk-bg/60 hover:bg-chalk-bg dark:bg-board-900'
               }`}
             >
               {t('login_signin')}
@@ -125,8 +129,8 @@ export default function Login() {
                 setError('')
                 setInfo('')
               }}
-              className={`flex-1 py-2 font-medium transition border-l border-chalk-line ${
-                mode === 'signup' ? 'bg-board-800 text-white' : 'bg-white text-board-700/60 hover:bg-chalk-bg'
+              className={`flex-1 py-2 font-medium transition border-l border-chalk-line dark:border-board-700 ${
+                mode === 'signup' ? 'bg-board-800 text-white' : 'bg-chalk-card dark:bg-board-800 text-ink-700/60 dark:text-chalk-bg/60 hover:bg-chalk-bg dark:bg-board-900'
               }`}
             >
               {t('login_signup')}
@@ -135,10 +139,10 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-board-700 mb-1">{t('login_email')}</label>
+              <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">{t('login_email')}</label>
               <input
                 type="email"
-                className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="teacher@example.com"
@@ -148,10 +152,10 @@ export default function Login() {
 
             {mode !== 'reset' && (
               <div>
-                <label className="block text-xs font-medium text-board-700 mb-1">{t('login_password')}</label>
+                <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">{t('login_password')}</label>
                 <input
                   type="password"
-                  className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -162,12 +166,12 @@ export default function Login() {
 
             {mode === 'signup' && (
               <div>
-                <label className="block text-xs font-medium text-board-700 mb-1">
+                <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">
                   {t('login_confirmPassword')}
                 </label>
                 <input
                   type="password"
-                  className="w-full border border-chalk-line rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600"
+                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
@@ -202,7 +206,7 @@ export default function Login() {
                 setError('')
                 setInfo('')
               }}
-              className="text-xs text-board-600 hover:underline mt-4 block mx-auto"
+              className="text-xs text-ink-600 dark:text-gold-500 hover:underline mt-4 block mx-auto"
             >
               {t('login_forgot')}
             </button>
@@ -215,7 +219,7 @@ export default function Login() {
                 setError('')
                 setInfo('')
               }}
-              className="text-xs text-board-600 hover:underline mt-4 block mx-auto"
+              className="text-xs text-ink-600 dark:text-gold-500 hover:underline mt-4 block mx-auto"
             >
               {t('login_backToSignIn')}
             </button>

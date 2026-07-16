@@ -7,12 +7,23 @@ html, body, #root {
 }
 
 body {
-  background-color: #F7F4EC;
-  background-image:
-    linear-gradient(90deg, rgba(31,61,46,0.035) 1px, transparent 1px);
+  @apply bg-chalk-bg text-board-900 dark:bg-board-900 dark:text-chalk-bg transition-colors duration-300;
+  background-image: linear-gradient(90deg, rgba(31,61,46,0.035) 1px, transparent 1px);
   background-size: 100% 42px;
   font-family: 'Inter', sans-serif;
-  color: #1F2A22;
+}
+
+/* Fix for native select dropdowns in light/dark mode */
+option {
+  @apply bg-chalk-card text-board-900;
+}
+
+.dark option {
+  @apply bg-board-800 text-white;
+}
+
+.dark body {
+  background-image: linear-gradient(90deg, rgba(247,244,236,0.035) 1px, transparent 1px);
 }
 
 .font-display {
@@ -43,6 +54,12 @@ body {
   border-width: 2px;
   border-style: solid;
   transform: rotate(-2deg);
+}
+
+/* Native date-input calendar icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
 }
 
 ::-webkit-scrollbar {
