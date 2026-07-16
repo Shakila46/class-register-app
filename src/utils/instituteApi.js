@@ -2,6 +2,7 @@ import {
   collection,
   addDoc,
   deleteDoc,
+  updateDoc,
   doc,
   onSnapshot,
   query,
@@ -26,4 +27,10 @@ export function addInstitute(name) {
 
 export function deleteInstitute(id) {
   return deleteDoc(doc(db, 'institutes', id))
+}
+
+export function updateInstitute(id, newName) {
+  return updateDoc(doc(db, 'institutes', id), {
+    name: newName.trim(),
+  })
 }

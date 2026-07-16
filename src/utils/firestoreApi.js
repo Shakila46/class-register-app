@@ -13,14 +13,21 @@ import {
 import { db } from '../firebase'
 
 // ---------- Users / RBAC ----------
-export function subscribeUser(uid, callback) {
-  return onSnapshot(doc(db, 'users', uid), (snap) => {
-    if (snap.exists()) {
-      callback({ id: snap.id, ...snap.data() })
-    } else {
-      callback(null)
+export function subscribeUser(uid, callback, onError) {
+  return onSnapshot(
+    doc(db, 'users', uid),
+    (snap) => {
+      if (snap.exists()) {
+        callback({ id: snap.id, ...snap.data() })
+      } else {
+        callback(null)
+      }
+    },
+    (err) => {
+      if (onError) onError(err)
+      else console.warn('subscribeUser error:', err.code)
     }
-  })
+  )
 }
 
 export function subscribeAllUsers(callback) {
@@ -43,6 +50,10 @@ export function createUserProfile(uid, email) {
 
 export function updateUser(uid, data) {
   return updateDoc(doc(db, 'users', uid), data)
+}
+
+export function deleteUserDoc(uid) {
+  return deleteDoc(doc(db, 'users', uid))
 }
 
 // ---------- Students ----------

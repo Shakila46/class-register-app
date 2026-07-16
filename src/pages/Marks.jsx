@@ -25,7 +25,7 @@ function saveSubject(value) {
   }
 }
 
-export default function Marks({ students, attendance, marks }) {
+export default function Marks({ students, attendance, marks, selectedInstitute }) {
   const { t } = useLanguage()
   const [mySubject, setMySubject] = useState(getSavedSubject)
   const [editingSubject, setEditingSubject] = useState(!getSavedSubject())
@@ -108,7 +108,7 @@ export default function Marks({ students, attendance, marks }) {
     const doc = new jsPDF({ orientation: 'landscape' })
     doc.setFontSize(14)
     doc.text(
-      `Marks Report${exportYear ? ' - ' + exportYear : ''}${mySubject ? ' (' + mySubject + ')' : ''}`,
+      `Marks Report${exportYear ? ' - ' + exportYear : ''}${selectedInstitute ? ` - ${selectedInstitute}` : ''}${mySubject ? ' (' + mySubject + ')' : ''}`,
       14,
       15
     )
@@ -124,7 +124,7 @@ export default function Marks({ students, attendance, marks }) {
       headStyles: { fillColor: [31, 61, 46] },
     })
 
-    doc.save(`marks-report-${exportYear || 'all'}-${new Date().toISOString().slice(0, 10)}.pdf`)
+    doc.save(`marks-report-${selectedInstitute || 'all'}-${exportYear || 'all'}-${new Date().toISOString().slice(0, 10)}.pdf`)
   }
 
   function confirmSubject(value) {
@@ -315,10 +315,13 @@ export default function Marks({ students, attendance, marks }) {
               >
                 ⬇ {t('marks_exportPdf')}
               </button>
+              <span className="text-xs text-ink-700/50 dark:text-chalk-bg/50 ml-auto font-medium">
+                {selectedInstitute ? `${t('institute_label') || 'Institute'}: ${selectedInstitute}` : t('institute_all') || 'All Institutes'}
+              </span>
             </div>
           )}
 
-          {grouped.map(([yearKey, list]) => (
+          {exportGrouped.map(([yearKey, list]) => (
             <div key={yearKey}>
               <div className="flex items-center gap-2 mb-2">
                 <YearPill year={yearKey} />

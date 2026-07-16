@@ -1,5 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { subscribeInstitutes, addInstitute as addInstituteDoc } from '../utils/instituteApi'
+import {
+  subscribeInstitutes,
+  addInstitute as addInstituteDoc,
+  deleteInstitute as deleteInstituteDoc,
+  updateInstitute as updateInstituteDoc
+} from '../utils/instituteApi'
 
 const InstituteContext = createContext(null)
 const STORAGE_KEY = 'class-register-institute'
@@ -43,9 +48,39 @@ export function InstituteProvider({ children }) {
     setSelectedInstitute(trimmed)
   }
 
+  async function removeInstitute(name) {
+    const inst = institutes.find((i) => i.name === name)
+    if (inst) {
+      await deleteInstituteDoc(inst.id)
+      if (selectedInstitute === name) {
+        setSelectedInstitute('')
+      }
+    }
+  }
+
+  async function editInstitute(oldName, newName) {
+    const trimmed = newName.trim()
+    if (!trimmed) return
+    const inst = institutes.find((i) => i.name === oldName)
+    if (inst) {
+      await updateInstituteDoc(inst.id, trimmed)
+      if (selectedInstitute === oldName) {
+        setSelectedInstitute(trimmed)
+      }
+    }
+  }
+
   return (
     <InstituteContext.Provider
-      value={{ institutes, loading, selectedInstitute, setSelectedInstitute, addInstituteAndSelect }}
+      value={{
+        institutes,
+        loading,
+        selectedInstitute,
+        setSelectedInstitute,
+        addInstituteAndSelect,
+        removeInstitute,
+        editInstitute,
+      }}
     >
       {children}
     </InstituteContext.Provider>

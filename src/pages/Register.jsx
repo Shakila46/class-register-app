@@ -13,7 +13,7 @@ const GRADES = ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 1
 
 export default function Register({ students }) {
   const { t } = useLanguage()
-  const { institutes, selectedInstitute, setSelectedInstitute, addInstituteAndSelect } = useInstitute()
+  const { institutes, selectedInstitute, setSelectedInstitute, addInstituteAndSelect, editInstitute, removeInstitute } = useInstitute()
   const [name, setName] = useState('')
   const [admissionNo, setAdmissionNo] = useState('')
   const [year, setYear] = useState('')
@@ -57,6 +57,18 @@ export default function Register({ students }) {
     setEditingId(null)
     setAddingInstitute(false)
     setNewInstituteName('')
+  }
+
+  function generateAdmissionNo() {
+    const prefix = new Date().getFullYear() + '/'
+    const nums = students
+      .map(s => s.admissionNo)
+      .filter(ano => typeof ano === 'string' && ano.startsWith(prefix))
+      .map(ano => parseInt(ano.replace(prefix, ''), 10))
+      .filter(n => !isNaN(n))
+    
+    const max = nums.length > 0 ? Math.max(...nums) : 0
+    setAdmissionNo(prefix + String(max + 1).padStart(3, '0'))
   }
 
   async function handleAddInstitute(e) {
@@ -121,25 +133,66 @@ export default function Register({ students }) {
                 {t('reg_institute')}
               </label>
               {!addingInstitute ? (
-                <select
-                  value={institute}
-                  onChange={(e) => {
-                    if (e.target.value === '__add__') {
-                      setAddingInstitute(true)
-                    } else {
-                      setInstitute(e.target.value)
-                    }
-                  }}
-                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
-                >
-                  <option value="">{t('reg_selectInstitute')}</option>
-                  {institutes.map((inst) => (
-                    <option key={inst.id} value={inst.name}>
-                      {inst.name}
-                    </option>
-                  ))}
-                  <option value="__add__">+ {t('institute_addNew')}</option>
-                </select>
+                <div className="flex gap-1.5 items-center">
+                  <select
+                    value={institute}
+                    onChange={(e) => {
+                      if (e.target.value === '__add__') {
+                        setAddingInstitute(true)
+                      } else {
+                        setInstitute(e.target.value)
+                      }
+                    }}
+                    className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white flex-1 min-w-0 border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
+                  >
+                    <option value="">{t('reg_selectInstitute')}</option>
+                    {institutes.map((inst) => (
+                      <option key={inst.id} value={inst.name}>
+                        {inst.name}
+                      </option>
+                    ))}
+                    <option value="__add__">+ {t('institute_addNew')}</option>
+                  </select>
+                  {institute && (
+                    <>
+                      {/* Edit institute name */}
+                      <button
+                        type="button"
+                        title={`Rename "${institute}"`}
+                        onClick={async () => {
+                          const newName = prompt(`New name for "${institute}":`, institute)
+                          if (newName && newName.trim() && newName.trim() !== institute) {
+                            await editInstitute(institute, newName)
+                            setInstitute(newName.trim())
+                          }
+                        }}
+                        className="flex-shrink-0 bg-chalk-card dark:bg-board-800 border border-chalk-line dark:border-board-700 rounded-card p-2 text-ink-600 dark:text-chalk-bg/50 hover:text-gold-600 dark:hover:text-gold-500 hover:border-gold-500 transition"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      {/* Delete institute */}
+                      <button
+                        type="button"
+                        title={`Delete "${institute}"`}
+                        onClick={async () => {
+                          if (confirm(`Delete "${institute}"? This cannot be undone.`)) {
+                            await removeInstitute(institute)
+                            setInstitute('')
+                          }
+                        }}
+                        className="flex-shrink-0 bg-chalk-card dark:bg-board-800 border border-chalk-line dark:border-board-700 rounded-card p-2 text-ink-600 dark:text-chalk-bg/50 hover:text-fail-text hover:border-fail-text transition"
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                </div>
               ) : (
                 <div className="flex gap-1.5">
                   <input
@@ -184,12 +237,22 @@ export default function Register({ students }) {
               <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">
                 {t('reg_admissionNo')}
               </label>
-              <input
-                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white w-full border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
-                value={admissionNo}
-                onChange={(e) => setAdmissionNo(e.target.value)}
-                placeholder="e.g. 2026/045"
-              />
+              <div className="flex gap-2">
+                <input
+                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white flex-1 min-w-0 border border-chalk-line dark:border-board-700 rounded-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
+                  value={admissionNo}
+                  onChange={(e) => setAdmissionNo(e.target.value)}
+                  placeholder="e.g. 2026/045"
+                />
+                <button 
+                  type="button" 
+                  onClick={generateAdmissionNo}
+                  title="Auto generate admission number"
+                  className="text-xs px-3 border border-chalk-line dark:border-board-700 rounded-card text-ink-700 dark:text-chalk-bg/80 hover:text-gold-600 dark:hover:text-gold-500 hover:border-gold-500 transition whitespace-nowrap"
+                >
+                  ✨ Auto
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-ink-700 dark:text-chalk-bg/90 mb-1">
@@ -256,42 +319,40 @@ export default function Register({ students }) {
         </Card>
 
         <div className="space-y-6">
+          <Card className="p-3 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-ink-700 dark:text-chalk-bg/90 flex-shrink-0">
+                💰 {t('fees_monthLabel')}
+              </label>
+              <input
+                type="month"
+                value={feeMonth}
+                onChange={(e) => setFeeMonth(e.target.value)}
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-medium text-ink-700 dark:text-chalk-bg/90 flex-shrink-0">
+                🏛 {t('institute_label')}
+              </label>
+              <select
+                value={selectedInstitute}
+                onChange={(e) => setSelectedInstitute(e.target.value)}
+                className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card pl-3 pr-8 py-1.5 text-sm truncate focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
+              >
+                <option value="">{t('institute_all')}</option>
+                {institutes.map((inst) => (
+                  <option key={inst.id} value={inst.name}>
+                    {inst.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Card>
+
           {grouped.length === 0 && (
             <Card className="p-8 text-center text-sm text-ink-700/60 dark:text-chalk-bg/60">
-              {t('reg_empty')}
-            </Card>
-          )}
-
-          {grouped.length > 0 && (
-            <Card className="p-3 flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-ink-700 dark:text-chalk-bg/90 flex-shrink-0">
-                  💰 {t('fees_monthLabel')}
-                </label>
-                <input
-                  type="month"
-                  value={feeMonth}
-                  onChange={(e) => setFeeMonth(e.target.value)}
-                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-medium text-ink-700 dark:text-chalk-bg/90 flex-shrink-0">
-                  🏛 {t('institute_label')}
-                </label>
-                <select
-                  value={selectedInstitute}
-                  onChange={(e) => setSelectedInstitute(e.target.value)}
-                  className="bg-chalk-card dark:bg-board-800 text-ink-900 dark:text-white border border-chalk-line dark:border-board-700 rounded-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-board-600 dark:focus:ring-gold-500"
-                >
-                  <option value="">{t('institute_all')}</option>
-                  {institutes.map((inst) => (
-                    <option key={inst.id} value={inst.name}>
-                      {inst.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {students.length === 0 ? t('reg_empty') : t('dash_noMatch')}
             </Card>
           )}
 
