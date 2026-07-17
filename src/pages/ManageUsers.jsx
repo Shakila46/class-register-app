@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
-import { subscribeAllUsers, updateUser, deleteUserDoc } from '../utils/firestoreApi'
+import { subscribeAllUsers, updateUser, deleteUserDoc, createUserProfile } from '../utils/firestoreApi'
 import { useInstitute } from '../context/InstituteContext.jsx'
 import { Card, PageHeader } from '../components/UI.jsx'
+import { initializeApp, deleteApp } from 'firebase/app'
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+import { firebaseConfig } from '../firebase'
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([])
@@ -9,6 +12,12 @@ export default function ManageUsers() {
   const [newInstituteName, setNewInstituteName] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [editingName, setEditingName] = useState('')
+  
+  const [newEmail, setNewEmail] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [isAddingUser, setIsAddingUser] = useState(false)
+  const [addUserError, setAddUserError] = useState('')
 
   useEffect(() => {
     const unsub = subscribeAllUsers(setUsers)
@@ -54,6 +63,36 @@ export default function ManageUsers() {
     }
     setEditingId(null)
     setEditingName('')
+  }
+
+  async function handleAddUser(e) {
+    e.preventDefault()
+    if (!newEmail.trim() || !newPassword) return
+    setIsAddingUser(true)
+    setAddUserError('')
+    
+    let secondaryApp
+    try {
+      secondaryApp = initializeApp(firebaseConfig, 'SecondaryApp')
+      const secondaryAuth = getAuth(secondaryApp)
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPassword)
+      await createUserProfile(cred.user.uid, newEmail)
+      await updateUser(cred.user.uid, { status: 'approved' })
+      setNewEmail('')
+      setNewPassword('')
+      await secondaryAuth.signOut()
+    } catch (err) {
+      if (err.code === 'auth/email-already-in-use') {
+        setAddUserError('This email is already registered. If the user was deleted, they can simply Sign In to restore their account.')
+      } else {
+        setAddUserError(err.message)
+      }
+    } finally {
+      if (secondaryApp) {
+        await deleteApp(secondaryApp)
+      }
+      setIsAddingUser(false)
+    }
   }
 
   return (
@@ -140,6 +179,61 @@ export default function ManageUsers() {
             <span className="text-gold-600 dark:text-gold-500">👥</span> Manage Users
           </h2>
           <Card className="overflow-hidden">
+            <div className="p-4 border-b border-chalk-line dark:border-board-700 bg-chalk-bg/50 dark:bg-board-800/30">
+              <h3 className="text-xs font-medium text-ink-900 dark:text-white mb-2">Add New User</h3>
+              <form onSubmit={handleAddUser} className="flex flex-wrap gap-2 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="Email Address"
+                    className="w-full bg-white dark:bg-board-800 border border-chalk-line dark:border-board-600 rounded-card px-3 py-1.5 text-sm text-ink-900 dark:text-white placeholder:text-ink-600/50 dark:placeholder:text-chalk-bg/40 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                    required
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="flex-1 min-w-[200px] relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Password (min 6 characters)"
+                    className="w-full bg-white dark:bg-board-800 border border-chalk-line dark:border-board-600 rounded-card px-3 py-1.5 pr-9 text-sm text-ink-900 dark:text-white placeholder:text-ink-600/50 dark:placeholder:text-chalk-bg/40 focus:outline-none focus:ring-1 focus:ring-gold-500"
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((v) => !v)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-700/60 dark:text-chalk-bg/60 hover:text-ink-900 dark:hover:text-white transition z-10"
+                    title={showNewPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showNewPassword ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isAddingUser}
+                  className="text-sm px-4 py-1.5 bg-gold-500 text-board-900 font-medium rounded-card hover:bg-gold-100 transition disabled:opacity-50"
+                >
+                  {isAddingUser ? 'Adding...' : '+ Add User'}
+                </button>
+              </form>
+              {addUserError && <p className="text-xs text-fail-text mt-2">{addUserError}</p>}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[600px]">
                 <thead>

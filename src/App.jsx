@@ -10,7 +10,8 @@ import {
   subscribeStudents,
   subscribeAttendance,
   subscribeMarks,
-  subscribeUser
+  subscribeUser,
+  createUserProfile
 } from './utils/firestoreApi'
 import { subscribeAuth, logout } from './utils/authApi'
 import { useLanguage } from './context/LanguageContext.jsx'
@@ -28,8 +29,21 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
+      let hasResolved = false
       // Helper to resolve the user profile (used both for success and error fallback)
       function resolveProfile(profile) {
+        if (!profile && user && !hasResolved) {
+          createUserProfile(user.uid, user.email).catch(console.error)
+        }
+        
+        // If the profile becomes null after being resolved once, it means an admin deleted it.
+        // We should log them out or just let them fall back to pending (without recreating it).
+        if (!profile && hasResolved) {
+          logout()
+          return
+        }
+        
+        hasResolved = true
         let finalProfile = profile || { status: 'pending', role: 'teacher' }
         // Force the master admin email to always have admin privileges in the UI
         if (user.email === 'shakilapraween46@gmail.com') {

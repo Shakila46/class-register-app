@@ -80,3 +80,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transition: none !important;
   }
 }
+
+/* Chrome autofill background fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #FFFFFF inset !important;
+  -webkit-text-fill-color: #16241C !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover, 
+.dark input:-webkit-autofill:focus, 
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1F3D2E inset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
